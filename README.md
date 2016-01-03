@@ -15,7 +15,7 @@ public class Target {
 }
 
 /* package */ class TargetData {
-    int getId();
+    /* package */ int getId();
 }
 ```
 
