@@ -55,6 +55,9 @@ public final class ProxyFactory {
         }
 
         private void unwrapArgs(Object[] args) {
+            if (args == null) {
+                return;
+            }
             for (int i = 0; i < args.length; ++i) {
                 Object arg = args[i];
                 if (arg instanceof ProxyBase) {
@@ -70,6 +73,8 @@ public final class ProxyFactory {
                 throw new AssertionError(e);
             } catch (InvocationTargetException e) {
                 throw new RuntimeException(e.getCause());
+            } catch (NullPointerException e) {
+                throw new ProxyException("Attempted to call instance method on static proxy", e);
             }
         }
 
@@ -90,21 +95,29 @@ public final class ProxyFactory {
 
     private ProxyFactory() { }
 
-    @SuppressWarnings("unchecked")
     public static <T extends ProxyBase> T createProxy(Class<T> proxyClass, Object target) {
         Class<?> targetClass = getTargetClass(proxyClass);
         if (!targetClass.isAssignableFrom(target.getClass())) {
             throw new ProxyException("Proxy cannot be applied to target (expected " +
                 targetClass.getName() + ", got " + target.getClass().getName() + ")");
         }
+        return createProxyInternal(proxyClass, targetClass, target);
+    }
 
-        ReflectionInvocationHandler invocationHandler = new ReflectionInvocationHandler(targetClass, target);
-        return (T)Proxy.newProxyInstance(proxyClass.getClassLoader(), new Class<?>[] {proxyClass}, invocationHandler);
+    public static <T extends ProxyBase> T createStaticProxy(Class<T> proxyClass) {
+        Class<?> targetClass = getTargetClass(proxyClass);
+        return createProxyInternal(proxyClass, targetClass, null);
     }
 
     public static Object getProxyTarget(ProxyBase proxy) {
         ReflectionInvocationHandler invocationHandler = (ReflectionInvocationHandler)Proxy.getInvocationHandler(proxy);
         return invocationHandler.getTarget();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T createProxyInternal(Class<T> proxyClass, Class<?> targetClass, Object target) {
+        ReflectionInvocationHandler invocationHandler = new ReflectionInvocationHandler(targetClass, target);
+        return (T)Proxy.newProxyInstance(proxyClass.getClassLoader(), new Class<?>[] {proxyClass}, invocationHandler);
     }
 
     private static Class<?> getTargetClass(Class<?> proxyClass) {
