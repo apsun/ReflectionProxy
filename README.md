@@ -44,3 +44,6 @@ int id = dataProxy.getId();
 proxy.setData(dataProxy);
 ```
 
+## License
+
+Distributed under the [MIT License](http://opensource.org/licenses/MIT).
