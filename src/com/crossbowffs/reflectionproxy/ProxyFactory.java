@@ -95,7 +95,7 @@ public final class ProxyFactory {
             } catch (IllegalAccessException e) {
                 throw new AssertionError(e);
             } catch (InvocationTargetException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException(e.getCause());
             }
         }
 
@@ -121,7 +121,7 @@ public final class ProxyFactory {
     @SuppressWarnings("unchecked")
     public static <T extends ProxyBase> T createProxy(Class<T> proxyClass, Object target) {
         Class<?> targetClass = getTargetClass(proxyClass);
-        if (targetClass != target.getClass()) {
+        if (!targetClass.isAssignableFrom(target.getClass())) {
             throw new ProxyException("Proxy cannot be applied to target (expected " +
                 targetClass.getName() + ", got " + target.getClass().getName() + ")");
         }
