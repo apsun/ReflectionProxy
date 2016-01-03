@@ -7,26 +7,8 @@ import java.lang.reflect.Proxy;
 import java.util.*;
 
 public final class ProxyFactory {
-    private static class MethodWrapper {
-        private final Method mMethod;
-        private final boolean mNeedsUnwrapping;
-
-        public MethodWrapper(Method method, boolean needsUnwrapping) {
-            mMethod = method;
-            mNeedsUnwrapping = needsUnwrapping;
-        }
-
-        public Method getMethod() {
-            return mMethod;
-        }
-
-        public boolean needsUnwrapping() {
-            return mNeedsUnwrapping;
-        }
-    }
-
     private static class ReflectionInvocationHandler implements InvocationHandler {
-        private static final Map<Method, MethodWrapper> sMethodCache = new HashMap<Method, MethodWrapper>();
+        private static final Map<Method, Method> sMethodCache = new HashMap<Method, Method>();
         private final Object mTarget;
         private final Class<?> mTargetClass;
 
@@ -39,7 +21,7 @@ public final class ProxyFactory {
             return mTarget;
         }
 
-        private Method findRawMethod(String methodName, Class<?>[] argTypes) {
+        private Method findMethod(String methodName, Class<?>[] argTypes) {
             try {
                 return mTargetClass.getMethod(methodName, argTypes);
             } catch (NoSuchMethodException e1) {
@@ -51,41 +33,34 @@ public final class ProxyFactory {
             }
         }
 
-        private MethodWrapper getTargetMethod(Method proxyMethod) {
-            MethodWrapper targetMethod = sMethodCache.get(proxyMethod);
+        private Method getTargetMethod(Method proxyMethod) {
+            Method targetMethod = sMethodCache.get(proxyMethod);
             if (targetMethod == null) {
                 String targetMethodName = proxyMethod.getName();
                 Class<?>[] proxyMethodArgTypes = proxyMethod.getParameterTypes();
                 Class<?>[] targetMethodArgTypes = new Class<?>[proxyMethodArgTypes.length];
-                boolean needsUnwrapping = false;
                 for (int i = 0; i < targetMethodArgTypes.length; ++i) {
                     Class<?> argType = proxyMethodArgTypes[i];
                     if (ProxyBase.class.isAssignableFrom(argType)) {
-                        needsUnwrapping = true;
                         targetMethodArgTypes[i] = getTargetClass(argType);
                     } else {
                         targetMethodArgTypes[i] = argType;
                     }
                 }
-                Method rawTargetMethod = findRawMethod(targetMethodName, targetMethodArgTypes);
-                rawTargetMethod.setAccessible(true);
-                targetMethod = new MethodWrapper(rawTargetMethod, needsUnwrapping);
+                targetMethod = findMethod(targetMethodName, targetMethodArgTypes);
+                targetMethod.setAccessible(true);
                 sMethodCache.put(proxyMethod, targetMethod);
             }
             return targetMethod;
         }
 
-        private Object[] unwrapArgs(Object[] args) {
-            Object[] unwrappedArgs = new Object[args.length];
+        private void unwrapArgs(Object[] args) {
             for (int i = 0; i < args.length; ++i) {
                 Object arg = args[i];
                 if (arg instanceof ProxyBase) {
-                    unwrappedArgs[i] = getProxyTarget((ProxyBase)arg);
-                } else {
-                    unwrappedArgs[i] = arg;
+                    args[i] = getProxyTarget((ProxyBase)arg);
                 }
             }
-            return unwrappedArgs;
         }
 
         private Object invokeMethod(Method targetMethod, Object[] args) {
@@ -101,11 +76,9 @@ public final class ProxyFactory {
         @Override
         @SuppressWarnings("unchecked")
         public Object invoke(Object proxy, Method proxyMethod, Object[] args) {
-            MethodWrapper targetMethod = getTargetMethod(proxyMethod);
-            if (targetMethod.needsUnwrapping()) {
-                args = unwrapArgs(args);
-            }
-            Object returnValue = invokeMethod(targetMethod.getMethod(), args);
+            Method targetMethod = getTargetMethod(proxyMethod);
+            unwrapArgs(args);
+            Object returnValue = invokeMethod(targetMethod, args);
             Class<?> returnType = proxyMethod.getReturnType();
             if (ProxyBase.class.isAssignableFrom(returnType)) {
                 return createProxy((Class<? extends ProxyBase>)returnType, returnValue);
