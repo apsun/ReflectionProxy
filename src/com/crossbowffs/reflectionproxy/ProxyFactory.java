@@ -26,7 +26,7 @@ public final class ProxyFactory {
     }
 
     private static class ReflectionInvocationHandler implements InvocationHandler {
-        private static Map<Method, MethodWrapper> sMethodCache = new HashMap<Method, MethodWrapper>();
+        private static final Map<Method, MethodWrapper> sMethodCache = new HashMap<Method, MethodWrapper>();
         private final Object mTarget;
         private final Class<?> mTargetClass;
 
@@ -79,8 +79,7 @@ public final class ProxyFactory {
             Object[] unwrappedArgs = new Object[args.length];
             for (int i = 0; i < args.length; ++i) {
                 Object arg = args[i];
-                Class<?> argType = arg.getClass();
-                if (ProxyBase.class.isAssignableFrom(argType)) {
+                if (arg instanceof ProxyBase) {
                     unwrappedArgs[i] = getProxyTarget((ProxyBase)arg);
                 } else {
                     unwrappedArgs[i] = arg;
@@ -128,14 +127,6 @@ public final class ProxyFactory {
 
         ReflectionInvocationHandler invocationHandler = new ReflectionInvocationHandler(targetClass, target);
         return (T)Proxy.newProxyInstance(proxyClass.getClassLoader(), new Class<?>[] {proxyClass}, invocationHandler);
-    }
-
-    public static <T extends ProxyBase> List<T> createProxyList(Class<T> proxyClass, List<?> targetList) {
-        List<T> proxiedList = new ArrayList<T>(targetList.size());
-        for (Object metaData : targetList) {
-            proxiedList.add(ProxyFactory.createProxy(proxyClass, metaData));
-        }
-        return proxiedList;
     }
 
     public static Object getProxyTarget(ProxyBase proxy) {
