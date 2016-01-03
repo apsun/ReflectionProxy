@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.*;
 
-public class ProxyFactory {
+public final class ProxyFactory {
     private static class MethodWrapper {
         private final Method mMethod;
         private final boolean mNeedsUnwrapping;
@@ -115,6 +115,8 @@ public class ProxyFactory {
             }
         }
     }
+
+    private ProxyFactory() { }
 
     @SuppressWarnings("unchecked")
     public static <T extends ProxyBase> T createProxy(Class<T> proxyClass, Object target) {
