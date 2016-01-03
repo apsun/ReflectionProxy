@@ -14,7 +14,6 @@ public class TargetFactory {
 }
 
 public class Target {
-    /* package */ static Target create();
     /* package */ TargetData getData();
     /* package */ void setData(TargetData data);
 }
@@ -56,8 +55,8 @@ int id = dataProxy.getId();
 proxy.setData(dataProxy);
 ```
 
-Note that I could have made `TargetFactoryProxy#create()` directly return `TargetProxy`, 
-which would have let me skip the call to `ProxyFactory#createProxy()`.
+Note that I could have made `TargetFactoryProxy.create()` directly return `TargetProxy`, 
+which would have let me skip the call to `ProxyFactory.createProxy()`.
 
 Also note that there is no distinction between static and instance methods in the 
 proxy interface. Calling a static method on an instance proxy is perfectly fine, but 
