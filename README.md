@@ -35,7 +35,6 @@ public interface TargetFactoryProxy extends ProxyBase {
 @ProxyTarget(Target.class)
 public interface TargetProxy extends ProxyBase {
     // Automatic parameter and return type conversion!
-    Target create();
     TargetDataProxy getData();
     void setData(TargetDataProxy data);
 }
@@ -51,14 +50,18 @@ Now, your code is as simple as:
 ```Java
 TargetFactoryProxy factoryProxy = ProxyFactory.createStaticProxy(TargetFactoryProxy.class);
 Target target = factoryProxy.create();
-// Note that I could have made `TargetFactoryProxy#create()` directly
-// return `TargetProxy`, which would let me skip this next step; this 
-// is for demonstration purposes only.
 TargetProxy proxy = ProxyFactory.createProxy(TargetProxy.class, target);
 TargetDataProxy dataProxy = proxy.getData();
 int id = dataProxy.getId();
 proxy.setData(dataProxy);
 ```
+
+Note that I could have made `TargetFactoryProxy#create()` directly return `TargetProxy`, 
+which would have let me skip the call to `ProxyFactory#createProxy()`.
+
+Also note that there is no distinction between static and instance methods in the 
+proxy interface. Calling a static method on an instance proxy is perfectly fine, but 
+calling an instance method on a static proxy will throw an exception.
 
 ## License
 
