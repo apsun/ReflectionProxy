@@ -7,6 +7,7 @@ public final class ProxyUtils {
 
     /**
      * Gets the object that the specified proxy delegates to.
+     * If {@code proxy} is a static proxy, {@code null} will be returned.
      *
      * @param proxy The proxy object.
      */

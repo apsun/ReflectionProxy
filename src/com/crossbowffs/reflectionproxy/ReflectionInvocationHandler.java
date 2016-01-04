@@ -31,7 +31,7 @@ import java.util.Map;
         mTarget = target;
     }
 
-    public Object getTarget() {
+    /* package */ Object getTarget() {
         return mTarget;
     }
 
@@ -65,16 +65,14 @@ import java.util.Map;
     private static Object coerceInput(Class<?> expectedType, Object value) {
         if (value == null || expectedType.isAssignableFrom(value.getClass())) {
             return value;
-        }
-        if (expectedType.isPrimitive()) {
+        } else if (expectedType.isPrimitive()) {
             checkPrimitiveType(expectedType, value);
             return value;
-        }
-        if (value instanceof ProxyBase) {
-            value = ProxyUtils.getProxyTarget((ProxyBase)value);
-        }
-        if (expectedType.isAssignableFrom(value.getClass())) {
-            return value;
+        } else if (value instanceof ProxyBase) {
+            Object rawValue = ProxyUtils.getProxyTarget((ProxyBase)value);
+            if (expectedType.isAssignableFrom(rawValue.getClass())) {
+                return rawValue;
+            }
         }
         throw new ProxyException(value.getClass().getName() +
             " cannot be converted to " + expectedType.getName());
@@ -84,23 +82,22 @@ import java.util.Map;
     private static Object coerceOutput(Class<?> expectedType, Object value) {
         if (value == null || expectedType.isAssignableFrom(value.getClass())) {
             return value;
-        }
-        if (expectedType.isPrimitive()) {
+        } else if (expectedType.isPrimitive()) {
             checkPrimitiveType(expectedType, value);
             return value;
-        }
-        if (ProxyBase.class.isAssignableFrom(expectedType)) {
-            value = ProxyFactory.createProxy((Class<? extends ProxyBase>)expectedType, value);
-        }
-        if (expectedType.isAssignableFrom(value.getClass())) {
-            return value;
+        } else if (ProxyBase.class.isAssignableFrom(expectedType)) {
+            Object rawValue = ProxyFactory.createProxy((Class<? extends ProxyBase>)expectedType, value);
+            if (expectedType.isAssignableFrom(rawValue.getClass())) {
+                return rawValue;
+            }
         }
         throw new ProxyException(value.getClass().getName() +
             " cannot be converted to " + expectedType.getName());
     }
 
-    private static void unwrapArgs(Object[] args, Class<?>[] argTypes) {
+    private static void coerceArgs(Method targetMethod, Object[] args) {
         if (args != null) {
+            Class<?>[] argTypes = targetMethod.getParameterTypes();
             for (int i = 0; i < args.length; ++i) {
                 args[i] = coerceInput(argTypes[i], args[i]);
             }
@@ -171,7 +168,6 @@ import java.util.Map;
                     targetMethodArgTypes[i] = argType;
                 }
             }
-
             targetMethod = findMethod(targetClass, targetMethodName, targetMethodArgTypes);
             targetMethod.setAccessible(true);
             sMethodCache.put(proxyMethod, targetMethod);
@@ -179,7 +175,7 @@ import java.util.Map;
         return targetMethod;
     }
 
-    private static FieldAccessor createAccessorInfo(Class<?> targetClass, Method proxyMethod, ProxyField fieldAnnotation) {
+    private static String getFieldNameForMethod(Method proxyMethod, ProxyField fieldAnnotation) {
         String fieldName = fieldAnnotation.value();
         if ("".equals(fieldName)) {
             String methodName = proxyMethod.getName();
@@ -190,14 +186,17 @@ import java.util.Map;
                     "field name from method signature: " + proxyMethod.toString());
             }
         }
+        return fieldName;
+    }
 
+    private static FieldAccessor createAccessorInfo(Class<?> targetClass, Method proxyMethod, ProxyField fieldAnnotation) {
+        String fieldName = getFieldNameForMethod(proxyMethod, fieldAnnotation);
         Field field = findField(targetClass, fieldName);
         field.setAccessible(true);
         Class<?> fieldType = field.getType();
         Class<?> returnType = proxyMethod.getReturnType();
         Class<?>[] argTypes = proxyMethod.getParameterTypes();
         Class<?> expectedFieldType;
-
         if (returnType == void.class && argTypes.length == 1) {
             expectedFieldType = argTypes[0];
             if (isCoercibleInput(expectedFieldType, fieldType)) {
@@ -211,7 +210,6 @@ import java.util.Map;
         } else {
             throw new ProxyException("Invalid field accessor signature: " + proxyMethod.toString());
         }
-
         throw new ProxyException("Field type mismatch (expected " +
             expectedFieldType.getName() + ", got " + field.getType().getName() + ")");
     }
@@ -252,9 +250,11 @@ import java.util.Map;
         return (T)coerceOutput(expectedType, value);
     }
 
-    private Object invokeMethod(Method targetMethod, Object[] args) {
+    private Object invokeMethod(Method proxyMethod, Method targetMethod, Object[] args) {
+        coerceArgs(targetMethod, args);
+        Object returnValue;
         try {
-            return targetMethod.invoke(mTarget, args);
+            returnValue = targetMethod.invoke(mTarget, args);
         } catch (IllegalAccessException e) {
             throw new AssertionError(e);
         } catch (InvocationTargetException e) {
@@ -262,6 +262,8 @@ import java.util.Map;
         } catch (NullPointerException e) {
             throw new ProxyException("Attempted to call instance method on static proxy", e);
         }
+        Class<?> returnType = proxyMethod.getReturnType();
+        return coerceOutput(returnType, returnValue);
     }
 
     @Override
@@ -274,12 +276,9 @@ import java.util.Map;
                 setFieldValue(accessorInfo.mField, args[0]);
                 return null;
             }
+        } else {
+            Method targetMethod = getTargetMethod(mTargetClass, proxyMethod);
+            return invokeMethod(proxyMethod, targetMethod, args);
         }
-
-        Method targetMethod = getTargetMethod(mTargetClass, proxyMethod);
-        unwrapArgs(args, targetMethod.getParameterTypes());
-        Object returnValue = invokeMethod(targetMethod, args);
-        Class<?> returnType = proxyMethod.getReturnType();
-        return coerceOutput(returnType, returnValue);
     }
 }
