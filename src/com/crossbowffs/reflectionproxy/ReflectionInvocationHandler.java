@@ -86,9 +86,9 @@ import java.util.Map;
             checkPrimitiveType(expectedType, value);
             return value;
         } else if (ProxyBase.class.isAssignableFrom(expectedType)) {
-            Object rawValue = ProxyFactory.createProxy((Class<? extends ProxyBase>)expectedType, value);
-            if (expectedType.isAssignableFrom(rawValue.getClass())) {
-                return rawValue;
+            ProxyBase proxy = ProxyFactory.createProxy((Class<? extends ProxyBase>)expectedType, value);
+            if (expectedType.isAssignableFrom(proxy.getClass())) {
+                return proxy;
             }
         }
         throw new ProxyException(value.getClass().getName() +
