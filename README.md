@@ -16,6 +16,11 @@ It should only be used if the following conditions are met:
 - You aren't using it in performance critical code (i.e., in tight loops)
 - You don't want an external tool dependency
 
+On my machine, ReflectionProxy is about 75x slower than optimized (cached)
+reflection, and about 5x slower than naive (uncached) reflection. There is
+little I can do to improve performance: this is the natural overhead
+incurred by using dynamic proxies.
+
 If you are looking for high-performance reflection, please look elsewhere:
 - [AspectJ](https://blogs.vmware.com/vfabric/2012/04/using-aspectj-for-accessing-private-members-without-reflection.html)
 - [PatchLib](https://github.com/mariotaku/PatchLib)

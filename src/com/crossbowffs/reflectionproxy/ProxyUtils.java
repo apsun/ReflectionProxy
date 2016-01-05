@@ -35,7 +35,7 @@ import java.lang.reflect.Proxy;
             checkPrimitiveType(expectedType, value);
             return value;
         } else if (value instanceof ProxyBase) {
-            Object rawValue = ProxyUtils.getProxyTarget((ProxyBase)value);
+            Object rawValue = getProxyTarget((ProxyBase)value);
             if (expectedType.isAssignableFrom(rawValue.getClass())) {
                 return rawValue;
             }
@@ -74,7 +74,7 @@ import java.lang.reflect.Proxy;
         for (int i = 0; i < argTypes.length; ++i) {
             Class<?> argType = argTypes[i];
             if (ProxyBase.class.isAssignableFrom(argType)) {
-                argTypes[i] = ProxyUtils.getTargetClass(argType);
+                argTypes[i] = getTargetClass(argType);
             }
         }
     }
@@ -84,7 +84,7 @@ import java.lang.reflect.Proxy;
             return true;
         }
         if (ProxyBase.class.isAssignableFrom(maybeProxyType)) {
-            Class<?> rawType = ProxyUtils.getTargetClass(maybeProxyType);
+            Class<?> rawType = getTargetClass(maybeProxyType);
             if (actualType.isAssignableFrom(rawType)) {
                 return true;
             }
@@ -97,7 +97,7 @@ import java.lang.reflect.Proxy;
             return true;
         }
         if (ProxyBase.class.isAssignableFrom(maybeProxyType)) {
-            Class<?> rawType = ProxyUtils.getTargetClass(maybeProxyType);
+            Class<?> rawType = getTargetClass(maybeProxyType);
             if (rawType.isAssignableFrom(actualType)) {
                 return true;
             }
