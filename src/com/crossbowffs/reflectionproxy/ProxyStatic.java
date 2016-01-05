@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Marker annotation for static proxy methods. Currently not used.
  */
 @Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 public @interface ProxyStatic {
 
 }

@@ -2,6 +2,12 @@
 
 Automatic Java reflection proxy binding library, for all your reflection needs!
 
+## Features
+
+- Pure Java library, no external dependencies
+- Automatic method and field binding (no boilerplate code required)
+- Automatic proxy <-> object coercion
+
 ## Usage
 
 Suppose you have the following library code:

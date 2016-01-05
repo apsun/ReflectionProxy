@@ -31,6 +31,16 @@ public final class ProxyFactory {
         return createProxyInternal(proxyClass, targetClass, null);
     }
 
+    /**
+     * Gets the object that the specified proxy delegates to.
+     * If {@code proxy} is a static proxy, {@code null} will be returned.
+     *
+     * @param proxy The proxy object.
+     */
+    public static Object getProxyTarget(ProxyBase proxy) {
+        return ProxyUtils.getProxyTarget(proxy);
+    }
+
     @SuppressWarnings("unchecked")
     private static <T> T createProxyInternal(Class<T> proxyClass, Class<?> targetClass, Object target) {
         ReflectionInvocationHandler invocationHandler = new ReflectionInvocationHandler(targetClass, target);
