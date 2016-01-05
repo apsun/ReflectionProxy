@@ -16,10 +16,6 @@ import java.lang.annotation.Target;
  * <p>
  * If you do not want to use the set_X/get_X naming convention,
  * you may also specify the name of the field in the annotation.
- *
- * <p>
- * If the parameter/return type is a proxy interface, the value
- * will automatically be bridged at runtime.
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

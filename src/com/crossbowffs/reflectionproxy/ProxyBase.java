@@ -11,6 +11,11 @@ package com.crossbowffs.reflectionproxy;
  * as the target method.
  *
  * <p>
+ * To access fields, annotate a proxy method with {@link ProxyField}.
+ * To call constructors, use {@link ProxyConstructor}. See the
+ * corresponding annotations for more information.
+ *
+ * <p>
  * If an argument or return value is not directly accessible by your
  * code, you may use a proxy interface in the signature instead;
  * the types will be automatically bridged at runtime.

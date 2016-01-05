@@ -23,12 +23,12 @@ import java.lang.reflect.Method;
             newObject = mConstructor.newInstance(args);
         } catch (IllegalAccessException e) {
             throw new AssertionError(e);
+        } catch (IllegalArgumentException e) {
+            throw new ProxyException(e);
         } catch (InstantiationException e) {
-            throw new ProxyException("Target class is an abstract class", e);
+            throw new ProxyException("Cannot instantiate an abstract class", e);
         } catch (InvocationTargetException e) {
             throw new ProxyException("Target method threw an exception", e.getCause());
-        } catch (NullPointerException e) {
-            throw new ProxyException("Attempted to call instance method on static proxy", e);
         }
         return ProxyUtils.coerceOutput(mExpectedType, newObject);
     }
