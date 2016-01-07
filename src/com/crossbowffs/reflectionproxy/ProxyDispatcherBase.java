@@ -7,7 +7,7 @@ import java.util.Map;
 /* package */ abstract class ProxyDispatcherBase {
     private static final Map<Method, ProxyDispatcherBase> sDispatcherCache = new HashMap<Method, ProxyDispatcherBase>();
 
-    public abstract Object handle(Object target, Object[] args);
+    public abstract Object handle(ProxyBase proxy, Object target, Object[] args);
 
     private static ProxyDispatcherBase create(Class<?> targetClass, Method proxyMethod) {
         ProxyConstructor constructorAnnotation = proxyMethod.getAnnotation(ProxyConstructor.class);

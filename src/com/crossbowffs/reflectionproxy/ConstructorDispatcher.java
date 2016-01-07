@@ -16,7 +16,7 @@ import java.lang.reflect.Method;
     }
 
     @Override
-    public Object handle(Object target, Object[] args) {
+    public Object handle(ProxyBase proxy, Object target, Object[] args) {
         ProxyUtils.coerceArgs(mArgTypes, args);
         Object newObject;
         try {
@@ -30,7 +30,7 @@ import java.lang.reflect.Method;
         } catch (InvocationTargetException e) {
             throw new ProxyException("Target method threw an exception", e.getCause());
         }
-        return ProxyUtils.coerceOutput(mExpectedType, newObject);
+        return ProxyUtils.coerceOutput(mExpectedType, newObject, null);
     }
 
     private static Constructor<?> findConstructor(Class<?> targetClass, Method proxyMethod) {

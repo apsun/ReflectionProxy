@@ -8,7 +8,7 @@ import java.lang.reflect.Field;
     }
 
     @Override
-    public Object handle(Object target, Object[] args) {
+    public Object handle(ProxyBase proxy, Object target, Object[] args) {
         Object value;
         try {
             value = mField.get(target);
@@ -17,6 +17,6 @@ import java.lang.reflect.Field;
         } catch (NullPointerException e) {
             throw new ProxyException("Attempted to get instance field on static proxy", e);
         }
-        return ProxyUtils.coerceOutput(mExpectedType, value);
+        return ProxyUtils.coerceOutput(mExpectedType, value, proxy);
     }
 }

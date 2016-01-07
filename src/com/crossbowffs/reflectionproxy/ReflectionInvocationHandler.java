@@ -19,6 +19,6 @@ import java.lang.reflect.Method;
     @Override
     public Object invoke(Object proxy, Method proxyMethod, Object[] args) {
         ProxyDispatcherBase dispatcher = ProxyDispatcherBase.get(mTargetClass, proxyMethod);
-        return dispatcher.handle(mTarget, args);
+        return dispatcher.handle((ProxyBase)proxy, mTarget, args);
     }
 }

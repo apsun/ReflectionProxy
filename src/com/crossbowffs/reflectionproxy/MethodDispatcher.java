@@ -15,7 +15,7 @@ import java.lang.reflect.Method;
     }
 
     @Override
-    public Object handle(Object target, Object[] args) {
+    public Object handle(ProxyBase proxy, Object target, Object[] args) {
         ProxyUtils.coerceArgs(mArgTypes, args);
         Object returnValue;
         try {
@@ -27,7 +27,7 @@ import java.lang.reflect.Method;
         } catch (NullPointerException e) {
             throw new ProxyException("Attempted to call instance method on static proxy", e);
         }
-        return ProxyUtils.coerceOutput(mExpectedReturnType, returnValue);
+        return ProxyUtils.coerceOutput(mExpectedReturnType, returnValue, proxy);
     }
 
     private static Method findMethod(Class<?> targetClass, String methodName, Method proxyMethod) {

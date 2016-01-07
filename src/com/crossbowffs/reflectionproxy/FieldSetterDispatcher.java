@@ -8,7 +8,7 @@ import java.lang.reflect.Field;
     }
 
     @Override
-    public Object handle(Object target, Object[] args) {
+    public Object handle(ProxyBase proxy, Object target, Object[] args) {
         Object value = ProxyUtils.coerceInput(mField.getType(), args[0]);
         try {
             mField.set(target, value);

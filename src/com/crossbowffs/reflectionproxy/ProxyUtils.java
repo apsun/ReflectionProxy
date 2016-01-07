@@ -45,14 +45,21 @@ import java.lang.reflect.Proxy;
     }
 
     @SuppressWarnings("unchecked")
-    public static Object coerceOutput(Class<?> expectedType, Object value) {
+    public static Object coerceOutput(Class<?> expectedType, Object value, ProxyBase inputProxy) {
         if (value == null || expectedType.isAssignableFrom(value.getClass())) {
             return value;
         } else if (expectedType.isPrimitive()) {
             checkPrimitiveType(expectedType, value);
             return value;
         } else if (ProxyBase.class.isAssignableFrom(expectedType)) {
-            ProxyBase proxy = ProxyFactory.createProxy((Class<? extends ProxyBase>)expectedType, value);
+            ProxyBase proxy;
+            // Reuse the current proxy object if the target method uses `return this;`
+            // This reduces object allocations when performing method cascading (builder pattern)
+            if (inputProxy != null && value == getProxyTarget(inputProxy)) {
+                proxy = inputProxy;
+            } else {
+                proxy = ProxyFactory.createProxy((Class<? extends ProxyBase>)expectedType, value);
+            }
             if (expectedType.isAssignableFrom(proxy.getClass())) {
                 return proxy;
             }
